@@ -202,6 +202,9 @@ type Consumer struct {
 	// Defaults to http.Client{}, can be overridden (e.g. for testing) as necessary
 	HttpClient HttpClient
 
+	// Parser refers to the interface that used to parse request token and access token
+	Parser IParser
+
 	// Some APIs (e.g. Intuit/Quickbooks) require sending additional headers along with
 	// requests. (like "Accept" to specify the response type as XML or JSON) Note that this
 	// will only *add* headers, not set existing ones.
@@ -225,6 +228,7 @@ func newConsumer(consumerKey string, serviceProvider ServiceProvider, httpClient
 		clock:           clock,
 		HttpClient:      httpClient,
 		nonceGenerator:  newLockedNonceGenerator(clock),
+		Parser:          parser{},
 
 		AdditionalParams:                 make(map[string]string),
 		AdditionalAuthorizationUrlParams: make(map[string]string),
@@ -239,12 +243,13 @@ func newConsumer(consumerKey string, serviceProvider ServiceProvider, httpClient
 //      - serviceProvider:
 //        see the documentation for ServiceProvider for how to create this.
 //
-func NewConsumer(consumerKey string, consumerSecret string,
-	serviceProvider ServiceProvider) *Consumer {
-	consumer := newConsumer(consumerKey, serviceProvider, nil)
-
+func NewConsumer(key string, secret string, sp ServiceProvider, parser IParser) *Consumer {
+	consumer := newConsumer(key, sp, nil)
+	if parser != nil {
+		consumer.Parser = parser
+	}
 	consumer.signer = &HMACSigner{
-		consumerSecret: consumerSecret,
+		consumerSecret: secret,
 		hashFunc:       crypto.SHA1,
 	}
 
@@ -412,7 +417,7 @@ func (c *Consumer) GetRequestTokenAndUrlWithParams(callbackUrl string, additiona
 		return nil, "", errors.New("getBody: " + err.Error())
 	}
 
-	requestToken, err := parseRequestToken(*resp)
+	requestToken, err := c.Parser.RequestToken(*resp)
 	if err != nil {
 		return nil, "", errors.New("parseRequestToken: " + err.Error())
 	}
@@ -529,7 +534,7 @@ func (c *Consumer) makeAccessTokenRequestWithParams(params map[string]string, se
 		return nil, err
 	}
 
-	return parseAccessToken(*resp)
+	return c.Parser.AccessToken(*resp)
 }
 
 type RoundTripper struct {
@@ -963,6 +968,13 @@ type HttpClient interface {
 	Do(req *http.Request) (resp *http.Response, err error)
 }
 
+type parser struct{}
+
+type IParser interface {
+	RequestToken(string) (*RequestToken, error)
+	AccessToken(string) (*AccessToken, error)
+}
+
 type clock interface {
 	Seconds() int64
 	Nanos() int64
@@ -1016,7 +1028,7 @@ func (c *Consumer) signRequest(req *request, tokenSecret string) (*request, erro
 //
 //      - err:
 //        Set if an AccessToken could not be parsed from the given input.
-func parseAccessToken(data string) (atoken *AccessToken, err error) {
+func (p parser) AccessToken(data string) (atoken *AccessToken, err error) {
 	parts, err := url.ParseQuery(data)
 	if err != nil {
 		return nil, err
@@ -1040,7 +1052,7 @@ func parseAccessToken(data string) (atoken *AccessToken, err error) {
 	return &AccessToken{tokenParam[0], tokenSecretParam[0], additionalData}, nil
 }
 
-func parseRequestToken(data string) (*RequestToken, error) {
+func (p parser) RequestToken(data string) (*RequestToken, error) {
 	parts, err := url.ParseQuery(data)
 	if err != nil {
 		return nil, err

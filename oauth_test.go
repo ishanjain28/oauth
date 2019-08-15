@@ -1124,7 +1124,7 @@ func basicConsumer() *Consumer {
 			RequestTokenUrl:   "http://www.mrjon.es/requesttoken",
 			AuthorizeTokenUrl: "http://www.mrjon.es/authorizetoken",
 			AccessTokenUrl:    "http://www.mrjon.es/accesstoken",
-		})
+		}, nil)
 }
 
 func assertEq(t *testing.T, expected interface{}, actual interface{}) {
@@ -1146,6 +1146,7 @@ type MockHttpClient struct {
 	expectedHeaders     map[string][]string
 	oAuthChecker        *OAuthChecker
 	lastRequest         *http.Request
+	parser              IParser
 
 	// Return the mocked response
 	responseBody string
@@ -1155,7 +1156,7 @@ type MockHttpClient struct {
 }
 
 func NewMockHttpClient(t *testing.T) *MockHttpClient {
-	return &MockHttpClient{t: t, statusCode: 200}
+	return &MockHttpClient{t: t, statusCode: 200, parser: parser{}}
 }
 
 func (mock *MockHttpClient) Do(req *http.Request) (*http.Response, error) {
@@ -1208,6 +1209,14 @@ func (mock *MockHttpClient) Do(req *http.Request) (*http.Response, error) {
 			Body:       NewMockBody(mock.responseBody),
 		},
 		nil
+}
+
+func (mock *MockHttpClient) RequestTokenParser(data string) (*RequestToken, error) {
+	return mock.parser.RequestToken(data)
+}
+
+func (mock *MockHttpClient) AccessTokenParser(data string) (*AccessToken, error) {
+	return mock.parser.AccessToken(data)
 }
 
 func (mock *MockHttpClient) ExpectGet(expectedUrl string, expectedOAuthPairs map[string]string, responseBody string) {

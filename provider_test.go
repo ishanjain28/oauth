@@ -10,7 +10,7 @@ import (
 
 func TestProviderIsAuthorizedGood(t *testing.T) {
 	p := NewProvider(func(s string, h map[string]string) (*Consumer, error) {
-		c := NewConsumer(s, "consumersecret", ServiceProvider{})
+		c := NewConsumer(s, "consumersecret", ServiceProvider{}, nil)
 		c.signer = &MockSigner{}
 		return c, nil
 	})
@@ -32,7 +32,7 @@ func TestProviderIsAuthorizedGood(t *testing.T) {
 
 func TestProviderIsAuthorizedOauthParamsInBody(t *testing.T) {
 	p := NewProvider(func(s string, h map[string]string) (*Consumer, error) {
-		c := NewConsumer(s, "consumersecret", ServiceProvider{})
+		c := NewConsumer(s, "consumersecret", ServiceProvider{}, nil)
 		c.signer = &MockSigner{}
 		return c, nil
 	})
@@ -64,7 +64,7 @@ func TestProviderIsAuthorizedOauthParamsInBody(t *testing.T) {
 
 func TestProviderIsAuthorizedOauthParamsInQuery(t *testing.T) {
 	p := NewProvider(func(s string, h map[string]string) (*Consumer, error) {
-		c := NewConsumer(s, "consumersecret", ServiceProvider{})
+		c := NewConsumer(s, "consumersecret", ServiceProvider{}, nil)
 		c.signer = &MockSigner{}
 		return c, nil
 	})
@@ -94,7 +94,7 @@ func TestProviderIsAuthorizedOauthParamsInQuery(t *testing.T) {
 
 func TestProviderIsAuthorizedWithBodyHash(t *testing.T) {
 	p := NewProvider(func(s string, h map[string]string) (*Consumer, error) {
-		c := NewConsumer(s, "consumersecret", ServiceProvider{BodyHash: true})
+		c := NewConsumer(s, "consumersecret", ServiceProvider{BodyHash: true}, nil)
 		return c, nil
 	})
 	p.clock = &MockClock{Time: 1446226936}
@@ -115,7 +115,7 @@ func TestProviderIsAuthorizedWithBodyHash(t *testing.T) {
 
 func TestConsumerKeyWithEqualsInIt(t *testing.T) {
 	p := NewProvider(func(s string, h map[string]string) (*Consumer, error) {
-		c := NewConsumer(s, "consumersecret", ServiceProvider{})
+		c := NewConsumer(s, "consumersecret", ServiceProvider{}, nil)
 		c.signer = &MockSigner{}
 		return c, nil
 	})

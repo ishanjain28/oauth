@@ -1047,7 +1047,12 @@ func (p parser) AccessToken(data string) (atoken *AccessToken, err error) {
 			"Full response body: '" + data + "'")
 	}
 
-	additionalData := parseAdditionalData(parts)
+	additionalData := make(map[string]string)
+	for key, value := range parts {
+		if len(value) > 0 {
+			additionalData[key] = value[0]
+		}
+	}
 
 	return &AccessToken{tokenParam[0], tokenSecretParam[0], additionalData}, nil
 }
@@ -1080,16 +1085,6 @@ func (c *Consumer) baseParams(consumerKey string, additionalParams map[string]st
 	params.Add(CONSUMER_KEY_PARAM, consumerKey)
 	for key, value := range additionalParams {
 		params.Add(key, value)
-	}
-	return params
-}
-
-func parseAdditionalData(parts url.Values) map[string]string {
-	params := make(map[string]string)
-	for key, value := range parts {
-		if len(value) > 0 {
-			params[key] = value[0]
-		}
 	}
 	return params
 }

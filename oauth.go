@@ -203,7 +203,7 @@ type Consumer struct {
 	HttpClient HttpClient
 
 	// Parser refers to the interface that used to parse request token and access token
-	Parser IParser
+	Parser Parser
 
 	// Some APIs (e.g. Intuit/Quickbooks) require sending additional headers along with
 	// requests. (like "Accept" to specify the response type as XML or JSON) Note that this
@@ -243,7 +243,7 @@ func newConsumer(consumerKey string, serviceProvider ServiceProvider, httpClient
 //      - serviceProvider:
 //        see the documentation for ServiceProvider for how to create this.
 //
-func NewConsumer(key string, secret string, sp ServiceProvider, parser IParser) *Consumer {
+func NewConsumer(key string, secret string, sp ServiceProvider, parser Parser) *Consumer {
 	consumer := newConsumer(key, sp, nil)
 	if parser != nil {
 		consumer.Parser = parser
@@ -970,7 +970,7 @@ type HttpClient interface {
 
 type parser struct{}
 
-type IParser interface {
+type Parser interface {
 	RequestToken(string) (*RequestToken, error)
 	AccessToken(string) (*AccessToken, error)
 }

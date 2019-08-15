@@ -1146,7 +1146,7 @@ type MockHttpClient struct {
 	expectedHeaders     map[string][]string
 	oAuthChecker        *OAuthChecker
 	lastRequest         *http.Request
-	parser              IParser
+	parser              Parser
 
 	// Return the mocked response
 	responseBody string
